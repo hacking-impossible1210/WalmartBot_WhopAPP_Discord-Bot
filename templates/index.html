@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walmart Deals - ZIP Code Lookup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 1.2em;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .download-links {
+            margin-top: 20px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+        
+        .features {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .feature-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+            color: #28a745;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🛒 Walmart Deals</div>
+        <div class="subtitle">Find amazing deals within 50 miles of your location</div>
+        
+        <form id="zipForm">
+            <div class="form-group">
+                <label for="zip_code" class="form-label">Enter Your ZIP Code</label>
+                <input 
+                    type="text" 
+                    id="zip_code" 
+                    name="zip_code" 
+                    class="form-input" 
+                    placeholder="12345" 
+                    maxlength="5" 
+                    pattern="[0-9]{5}" 
+                    required
+                >
+            </div>
+            <button type="submit" class="btn" id="submitBtn">
+                Find Deals
+            </button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing your request...</p>
+        </div>
+        
+        <div class="result" id="result"></div>
+        
+        <div class="features">
+            <h3 style="margin-bottom: 20px; color: #2c3e50;">What You'll Get:</h3>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <div>Deals with 50%+ discount</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📦</div>
+                <div>Items in stock at nearby stores</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📄</div>
+                <div>PDF, Excel, and CSV reports</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🖼️</div>
+                <div>Product images and details</div>
+            </div>
+        </div>
+        
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        // Check system status on page load
+        fetch('/status')
+            .then(response => response.json())
+            .then(data => {
+                const statusDiv = document.getElementById('status');
+                if (data.status === 'ready') {
+                    statusDiv.className = 'status ready';
+                    statusDiv.textContent = '✅ System ready - Deal data available';
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '⚠️ No deal data available - Please try again later';
+                }
+            })
+            .catch(error => {
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ System error - Please try again later';
+            });
+
+        // Handle form submission
+        document.getElementById('zipForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const zipCode = document.getElementById('zip_code').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Validate ZIP code
+            if (!/^\d{5}$/.test(zipCode)) {
+                showResult('error', 'Please enter a valid 5-digit ZIP code');
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            
+            try {
+                const formData = new FormData();
+                formData.append('zip_code', zipCode);
+                
+                const response = await fetch('/process_zip', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('success', data.message, data);
+                } else {
+                    showResult('error', data.error || 'An error occurred');
+                }
+            } catch (error) {
+                showResult('error', 'Network error - Please try again');
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+        
+        function showResult(type, message, data = null) {
+            const result = document.getElementById('result');
+            result.className = `result ${type}`;
+            result.style.display = 'block';
+            
+            let html = `<p><strong>${message}</strong></p>`;
+            
+            if (data && data.download_url) {
+                html += '<div class="download-links">';
+                html += `<a href="${data.download_url}" class="download-btn" target="_blank">📄 Download PDF</a>`;
+                if (data.csv_url) {
+                    html += `<a href="${data.csv_url}" class="download-btn" target="_blank">📊 Download CSV</a>`;
+                }
+                if (data.excel_url) {
+                    html += `<a href="${data.excel_url}" class="download-btn" target="_blank">📈 Download Excel</a>`;
+                }
+                html += '</div>';
+            }
+            
+            result.innerHTML = html;
+        }
+        
+        // Auto-format ZIP code input
+        document.getElementById('zip_code').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+</body>
+</html>

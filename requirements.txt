@@ -1,0 +1,46 @@
+# Core Discord Bot Dependencies
+discord.py>=2.3.2
+aiohttp>=3.8.0
+
+# Web Application Framework
+Flask>=2.3.3
+
+# Data Processing & Analysis
+pandas>=2.0.0
+openpyxl>=3.1.0
+
+# PDF Generation
+fpdf2>=2.7.0
+
+# Image Processing
+Pillow>=10.0.0
+
+# HTTP Requests
+requests>=2.31.0
+
+# Geographic Calculations
+geopy>=2.4.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Timezone Support
+pytz>=2023.3
+
+# Standard Library Extensions (included with Python)
+# sqlite3 - Built into Python
+# csv - Built into Python
+# json - Built into Python
+# os - Built into Python
+# sys - Built into Python
+# time - Built into Python
+# datetime - Built into Python
+# re - Built into Python
+# random - Built into Python
+# concurrent.futures - Built into Python
+# asyncio - Built into Python
+# threading - Built into Python
+# tempfile - Built into Python
+# shutil - Built into Python
+# colorsys - Built into Python
+# io - Built into Python
