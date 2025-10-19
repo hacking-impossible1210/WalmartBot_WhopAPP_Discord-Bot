@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "whop_app.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "whop_app.py"
+    }
+  ],
+  "env": {
+    "RENDER_API_URL": "@render_api_url"
+  }
+}

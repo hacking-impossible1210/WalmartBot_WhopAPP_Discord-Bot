@@ -581,6 +581,24 @@ def process_and_combine_csv(input_folder, output_file):
         writer.writerows(combined_data)
     
     print(f"All files have been combined and saved as '{output_file}'.")
+    
+    # Upload to Render after processing
+    try:
+        if os.path.exists(output_file):
+            df = pd.read_csv(output_file)
+            csv_data = df.to_dict('records')
+            
+            # Upload to Render in background thread
+            import threading
+            upload_thread = threading.Thread(
+                target=lambda: upload_data_sync(csv_data)
+            )
+            upload_thread.daemon = True
+            upload_thread.start()
+            print("🔄 Uploading data to Render...")
+            
+    except Exception as e:
+        print(f"Error uploading to Render: {e}")
 
 
 
@@ -634,9 +652,9 @@ async def fetch_user_by_name(username):
 @bot.command(name='list_dm_users')
 async def list_dm_users(ctx):
     if dm_users:
-        await user.send("Users the bot has DM'd:\n" + "\n".join(dm_users))
+        await ctx.send("Users the bot has DM'd:\n" + "\n".join(dm_users))
     else:
-        await user.send("The bot has not DM'd any users yet.")
+        await ctx.send("The bot has not DM'd any users yet.")
 
 required_role_name = os.getenv('ALLOWED_ROLES_SETZIP').split(',')  # Replace with your required role name
 
@@ -1894,6 +1912,83 @@ async def auto_rebuild():
             print("Auto-rebuild complete")
             break
     
+
+# Render API Integration
+RENDER_API_URL = os.getenv('RENDER_API_URL', 'https://your-render-app.onrender.com')
+
+async def upload_data_to_render(csv_data, user_data=None, user_id=None):
+    """Upload processed data to Render backend"""
+    try:
+        payload = {
+            'csv_data': csv_data,
+            'user_data': user_data,
+            'user_id': user_id,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        response = requests.post(f'{RENDER_API_URL}/api/upload_data', 
+                               json=payload, 
+                               timeout=30)
+        
+        if response.status_code == 200:
+            print("✅ Data uploaded to Render successfully")
+            return True
+        else:
+            print(f"❌ Failed to upload data: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error uploading data: {str(e)}")
+        return False
+
+def upload_data_sync(csv_data, user_data=None, user_id=None):
+    """Synchronous version for use in non-async functions"""
+    try:
+        payload = {
+            'csv_data': csv_data,
+            'user_data': user_data,
+            'user_id': user_id,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        response = requests.post(f'{RENDER_API_URL}/api/upload_data', 
+                               json=payload, 
+                               timeout=30)
+        
+        if response.status_code == 200:
+            print("✅ Data uploaded to Render successfully")
+            return True
+        else:
+            print(f"❌ Failed to upload data: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error uploading data: {str(e)}")
+        return False
+
+# Add upload command for manual data sync
+@bot.tree.command(name="upload_data", description="Upload current data to Render backend")
+async def upload_data_command(interaction: discord.Interaction):
+    """Manual upload command"""
+    await interaction.response.defer()
+    
+    try:
+        csv_path = os.path.join(csv_directory, 'combined.csv')
+        if os.path.exists(csv_path):
+            df = pd.read_csv(csv_path)
+            csv_data = df.to_dict('records')
+            
+            success = await upload_data_to_render(csv_data)
+            if success:
+                await interaction.followup.send("✅ Data uploaded to Render successfully!")
+            else:
+                await interaction.followup.send("❌ Failed to upload data to Render")
+        else:
+            await interaction.followup.send("❌ No CSV data found to upload")
+            
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {str(e)}")
+
 
 # Run the bot
 bot.run(os.getenv('DISCORD_BOT_TOKEN'))

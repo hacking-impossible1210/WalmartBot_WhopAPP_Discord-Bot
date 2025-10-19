@@ -34,6 +34,9 @@ COMBINED_CSV_PATH = os.path.join(CSV_DIRECTORY, 'combined.csv')
 USER_CSV_DIRECTORY = os.path.join(os.path.dirname(__file__), 'user_csv_files')
 TEMP_IMAGE_DIRECTORY = os.path.join(os.path.dirname(__file__), 'temp_images')
 
+# Render API Configuration
+RENDER_API_URL = os.getenv('RENDER_API_URL', 'https://your-render-app.onrender.com')
+
 # Ensure directories exist
 os.makedirs(USER_CSV_DIRECTORY, exist_ok=True)
 os.makedirs(TEMP_IMAGE_DIRECTORY, exist_ok=True)
@@ -240,7 +243,7 @@ pip install -r requirements_simple.txt
 
 @app.route('/process_zip', methods=['POST'])
 def process_zip():
-    """Process ZIP code and generate PDF"""
+    """Process ZIP code and communicate with Render backend"""
     if not DEPENDENCIES_OK:
         return jsonify({'error': 'Dependencies not installed. Please install requirements.'}), 500
     
@@ -250,21 +253,41 @@ def process_zip():
         if not zip_code or len(zip_code) != 5 or not zip_code.isdigit():
             return jsonify({'error': 'Please enter a valid 5-digit ZIP code'}), 400
         
-        # Process the ZIP code using the same logic as the Discord bot
-        result = process_zip_code(zip_code)
-        
-        if result['success']:
-            return jsonify({
-                'success': True,
-                'message': f'Found {result["deal_count"]} deals for ZIP code {zip_code}',
-                'download_url': result['pdf_url'],
-                'deal_count': result['deal_count']
-            })
-        else:
-            return jsonify({'error': result['message']}), 400
+        # Send request to Render backend
+        try:
+            response = requests.post(f'{RENDER_API_URL}/api/process_zip', 
+                                  json={'zip_code': zip_code},
+                                  timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                return jsonify({
+                    'success': True,
+                    'message': data.get('message', f'Found {data.get("deal_count", 0)} deals for ZIP code {zip_code}'),
+                    'download_url': f'{RENDER_API_URL}{data.get("download_url", "")}',
+                    'deal_count': data.get('deal_count', 0)
+                })
+            else:
+                error_data = response.json() if response.content else {}
+                return jsonify({'error': error_data.get('error', 'Backend processing failed')}), 500
+                
+        except requests.exceptions.RequestException as e:
+            return jsonify({'error': f'Cannot connect to backend: {str(e)}'}), 500
             
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+
+@app.route('/status')
+def status():
+    """Check backend status"""
+    try:
+        response = requests.get(f'{RENDER_API_URL}/api/status', timeout=10)
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({'status': 'error', 'message': 'Backend unavailable'})
+    except requests.exceptions.RequestException:
+        return jsonify({'status': 'error', 'message': 'Backend unavailable'})
 
 def process_zip_code(zip_code):
     """Process ZIP code and generate PDF using bot logic"""

@@ -1,0 +1,7 @@
+# Render API Backend Dependencies
+Flask>=2.3.3
+pandas>=2.0.0
+openpyxl>=3.1.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+pytz>=2023.3

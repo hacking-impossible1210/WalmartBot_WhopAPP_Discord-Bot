@@ -1,0 +1,15 @@
+# Discord Bot Configuration
+DISCORD_BOT_TOKEN=your_discord_bot_token_here
+DEALS_CHANNEL_ID=your_deals_channel_id
+ZIP_CODE_CHANNEL_ID=your_zip_code_channel_id
+STORE_ID_CHANNEL_ID=your_store_id_channel_id
+ALLOWED_ROLES_SETZIP=role1,role2,role3
+
+# CSV Configuration
+CSV_DIRECTORY=csv
+ZIP_CODES_CSV=zip_codes.csv
+ZIP_CODE_COORDINATES_CSV=zip_code_coordinates.csv
+STORE_DATA_JSON=store_data.json
+
+# Render API Configuration
+RENDER_API_URL=https://your-render-app.onrender.com
