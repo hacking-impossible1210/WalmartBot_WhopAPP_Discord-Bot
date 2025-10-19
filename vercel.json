@@ -11,8 +11,5 @@
       "src": "/(.*)",
       "dest": "whop_app.py"
     }
-  ],
-  "env": {
-    "RENDER_API_URL": "@render_api_url"
-  }
+  ]
 }
