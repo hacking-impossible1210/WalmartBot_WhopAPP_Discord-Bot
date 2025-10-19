@@ -37,9 +37,13 @@ TEMP_IMAGE_DIRECTORY = os.path.join(os.path.dirname(__file__), 'temp_images')
 # Render API Configuration
 RENDER_API_URL = os.getenv('RENDER_API_URL', 'https://your-render-app.onrender.com')
 
-# Ensure directories exist
-os.makedirs(USER_CSV_DIRECTORY, exist_ok=True)
-os.makedirs(TEMP_IMAGE_DIRECTORY, exist_ok=True)
+# Ensure directories exist (skip in Vercel serverless environment)
+try:
+    os.makedirs(USER_CSV_DIRECTORY, exist_ok=True)
+    os.makedirs(TEMP_IMAGE_DIRECTORY, exist_ok=True)
+except OSError:
+    # Skip directory creation in serverless environments like Vercel
+    pass
 
 # WHOP App Functions (copied from bot.py to avoid Discord dependencies)
 def generate_light_colors(n):
@@ -413,27 +417,6 @@ def view_file(filename):
     except Exception as e:
         return jsonify({'error': f'Error viewing file: {str(e)}'}), 500
 
-@app.route('/status')
-def status():
-    """Check if the system is ready"""
-    try:
-        # Check if combined CSV exists
-        csv_exists = os.path.exists(COMBINED_CSV_PATH)
-        
-        # Check CSV file age
-        csv_age = None
-        if csv_exists:
-            csv_mtime = os.path.getmtime(COMBINED_CSV_PATH)
-            csv_age = datetime.fromtimestamp(csv_mtime)
-        
-        return jsonify({
-            'status': 'ready' if csv_exists else 'no_data',
-            'csv_exists': csv_exists,
-            'csv_age': csv_age.isoformat() if csv_age else None,
-            'message': 'System ready' if csv_exists else 'No deal data available'
-        })
-    except Exception as e:
-        return jsonify({'error': f'Status check failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
     print("🛒 Starting Walmart Deals WHOP App...")
