@@ -4,6 +4,8 @@ DEALS_CHANNEL_ID=your_deals_channel_id
 ZIP_CODE_CHANNEL_ID=your_zip_code_channel_id
 STORE_ID_CHANNEL_ID=your_store_id_channel_id
 ALLOWED_ROLES_SETZIP=role1,role2,role3
+ALLOWED_ROLES_REBUILD=role1,role2,role3
+ALLOWED_ROLES_ADDDBUSER=role1,role2,role3
 
 # CSV Configuration
 CSV_DIRECTORY=csv
